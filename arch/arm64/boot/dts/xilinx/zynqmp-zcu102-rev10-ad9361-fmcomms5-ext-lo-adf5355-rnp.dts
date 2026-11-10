@@ -1,0 +1,35 @@
+// RnP P1: GTR mux -> PCIe on all lanes; free lanes 1-3. FSBL still configures PCIe x1.
+// Base: FMCOMMS5 + ADF5355 external LO (both AD9361s, RX and TX).
+#include "zynqmp-zcu102-rev10-ad9361-fmcomms5-ext-lo-adf5355.dts"
+
+/* ZCU102 GTR mux U97: 0 = PCIe slot (lane 0 already low) */
+&tca6416_u97 {
+	gtr-sel1-hog { /delete-property/ output-high; output-low; };
+	gtr-sel2-hog { /delete-property/ output-high; output-low; };
+	gtr-sel3-hog { /delete-property/ output-high; output-low; };
+};
+
+&zynqmp_dpsub { status = "disabled"; };   /* releases lane 1 */
+&sata         { status = "disabled"; };   /* releases lane 3 */
+
+/* releases lane 2: USB0 stays as USB 2.0 through its ULPI PHY */
+&usb0 {
+	/delete-property/ phys;
+	/delete-property/ phy-names;
+};
+&dwc3_0 { maximum-speed = "high-speed"; };
+
+/* RnP P2.3: PCIe Gen2 x4 on PS-GTR lanes 0-3, all from Ref Clk0 (matches the PS8 config).
+ * Instance = lane index within the PCIe controller (icm_matrix in phy-zynqmp.c).
+ * Note: pcie-xilinx-nwl in this kernel does not consume `phys`; lanes are set up by the FSBL. */
+&pcie {
+	phys = <&psgtr 0 PHY_TYPE_PCIE 0 0>, <&psgtr 1 PHY_TYPE_PCIE 1 0>,
+	       <&psgtr 2 PHY_TYPE_PCIE 2 0>, <&psgtr 3 PHY_TYPE_PCIE 3 0>;
+};
+
+/* RnP ARGUS-94: TX silent from probe. Maximum attenuation on all 4 ports,
+ * DDS scale 0 on both DAC cores. Scripts raise TX explicitly when needed. */
+&adc0_ad9361 { adi,tx-attenuation-mdB = <89750>; };
+&adc1_ad9361 { adi,tx-attenuation-mdB = <89750>; };
+&cf_ad9361_dac_core_0 { adi,axi-dds-default-scale = <0>; };
+&cf_ad9361_dac_core_1 { adi,axi-dds-default-scale = <0>; };
