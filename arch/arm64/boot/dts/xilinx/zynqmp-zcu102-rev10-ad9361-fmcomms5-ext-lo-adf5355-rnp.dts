@@ -33,3 +33,14 @@
 &adc1_ad9361 { adi,tx-attenuation-mdB = <89750>; };
 &cf_ad9361_dac_core_0 { adi,axi-dds-default-scale = <0>; };
 &cf_ad9361_dac_core_1 { adi,axi-dds-default-scale = <0>; };
+
+/* RnP ARGUS-95: ADF5355 RF output on. The ZCU102 HDL drives gpio_ad5355_rfen
+ * from gpio_o[63] (EMIO 63 = PS GPIO 141); left at 0 it mutes the external LO. */
+&gpio {
+        adf5355-rfen-hog {
+                gpio-hog;
+                gpios = <141 0>;
+                output-high;
+                line-name = "adf5355-rfen";
+        };
+};
