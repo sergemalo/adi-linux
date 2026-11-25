@@ -2538,7 +2538,13 @@ static int cf_axi_dds_probe(struct platform_device *pdev)
 	if (info && !info->rate_format_skip_en)
 		dds_write(st, ADI_REG_CNTRL_2, ctrl_2);
 
-	cf_axi_dds_datasel(st, -1, DATA_SEL_DDS);
+	/*
+	 * The DDS raw switch at probe: on (DDS on every lane), unless
+	 * adi,axi-dds-default-off, then ZERO on every lane until
+	 * out_altvoltageN_raw = 1 (RnP ARGUS-96: no signal at power-up).
+	 */
+	st->enable = !of_property_read_bool(np, "adi,axi-dds-default-off");
+	cf_axi_dds_datasel(st, -1, cf_axi_dds_idle_datasel(st));
 
 	if (!st->dp_disable) {
 		u32 scale, frequency, phase, i, skip_attrib = 0;
@@ -2598,7 +2604,6 @@ static int cf_axi_dds_probe(struct platform_device *pdev)
 
 	}
 
-	st->enable = true;
 	cf_axi_dds_start_sync(st, 0);
 	cf_axi_dds_sync_frame(indio_dev);
 
