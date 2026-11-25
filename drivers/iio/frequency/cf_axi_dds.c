@@ -1043,10 +1043,15 @@ static int cf_axi_dds_update_scan_mode(struct iio_dev *indio_dev,
 
 	for (i = 0; i < iio_get_masklength(indio_dev); i++) {
 
+		/*
+		 * A lane not in the buffer follows the DDS raw switch
+		 * (out_altvoltageN_raw): DDS when on, ZERO when off. ADI writes
+		 * DDS unconditionally, which undoes raw = 0 (RnP ARGUS-96).
+		 */
 		if (test_bit(i, scan_mask))
 			sel = DATA_SEL_DMA;
 		else
-			sel = DATA_SEL_DDS;
+			sel = st->enable ? DATA_SEL_DDS : DATA_SEL_ZERO;
 
 		cf_axi_dds_datasel(st, i, sel);
 	}
