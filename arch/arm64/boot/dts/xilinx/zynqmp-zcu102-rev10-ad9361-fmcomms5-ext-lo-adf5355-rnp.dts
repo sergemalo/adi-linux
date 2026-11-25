@@ -34,6 +34,12 @@
 &cf_ad9361_dac_core_0 { adi,axi-dds-default-scale = <0>; };
 &cf_ad9361_dac_core_1 { adi,axi-dds-default-scale = <0>; };
 
+/* RnP ARGUS-96: DDS off from probe: ZERO on all 8 TX lanes (DATA_SEL), and
+ * kept by every TX buffer start and stop, until out_altvoltageN_raw = 1.
+ * Needs adi-linux argus-96-dds-zero; an older kernel ignores it. */
+&cf_ad9361_dac_core_0 { adi,axi-dds-default-off; };
+&cf_ad9361_dac_core_1 { adi,axi-dds-default-off; };
+
 /* RnP ARGUS-95: ADF5355 RF output on. The ZCU102 HDL drives gpio_ad5355_rfen
  * from gpio_o[63] (EMIO 63 = PS GPIO 141); left at 0 it mutes the external LO. */
 &gpio {
