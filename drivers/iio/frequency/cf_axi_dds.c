@@ -165,6 +165,16 @@ bool cf_axi_dds_dma_fifo_en(struct cf_axi_dds_state *st)
 {
 	return st->pl_dma_fifo_en;
 }
+
+/*
+ * DATA_SEL of a lane not in the TX buffer: it follows the DDS raw switch
+ * (out_altvoltageN_raw), DDS when on, ZERO when off, as the raw write does
+ * (RnP ARGUS-96).
+ */
+enum dds_data_select cf_axi_dds_idle_datasel(struct cf_axi_dds_state *st)
+{
+	return st->enable ? DATA_SEL_DDS : DATA_SEL_ZERO;
+}
 EXPORT_SYMBOL(cf_axi_dds_dma_fifo_en);
 
 void dds_write(struct cf_axi_dds_state *st,
@@ -1043,15 +1053,10 @@ static int cf_axi_dds_update_scan_mode(struct iio_dev *indio_dev,
 
 	for (i = 0; i < iio_get_masklength(indio_dev); i++) {
 
-		/*
-		 * A lane not in the buffer follows the DDS raw switch
-		 * (out_altvoltageN_raw): DDS when on, ZERO when off. ADI writes
-		 * DDS unconditionally, which undoes raw = 0 (RnP ARGUS-96).
-		 */
 		if (test_bit(i, scan_mask))
 			sel = DATA_SEL_DMA;
 		else
-			sel = st->enable ? DATA_SEL_DDS : DATA_SEL_ZERO;
+			sel = cf_axi_dds_idle_datasel(st);
 
 		cf_axi_dds_datasel(st, i, sel);
 	}

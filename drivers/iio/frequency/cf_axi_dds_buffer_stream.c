@@ -68,7 +68,7 @@ static int dds_buffer_state_set(struct iio_dev *indio_dev, bool state)
 #endif
 
 	if (!state)
-		return cf_axi_dds_datasel(st, -1, DATA_SEL_DDS);
+		return cf_axi_dds_datasel(st, -1, cf_axi_dds_idle_datasel(st));
 
 	dds_write(st, ADI_REG_VDMA_STATUS, ADI_VDMA_OVF | ADI_VDMA_UNF);
 
@@ -99,9 +99,22 @@ static const struct iio_dma_buffer_ops dds_buffer_dma_buffer_ops = {
 
 int cf_axi_dds_configure_buffer(struct iio_dev *indio_dev)
 {
-	return devm_iio_dmaengine_buffer_setup_with_ops(indio_dev->dev.parent,
-						   indio_dev, "tx",
-						   IIO_BUFFER_DIRECTION_OUT,
-						   &dds_buffer_dma_buffer_ops, indio_dev);
+	int ret;
+
+	ret = devm_iio_dmaengine_buffer_setup_with_ops(indio_dev->dev.parent,
+						  indio_dev, "tx",
+						  IIO_BUFFER_DIRECTION_OUT,
+						  &dds_buffer_dma_buffer_ops, indio_dev);
+	if (ret)
+		return ret;
+
+	/*
+	 * Dropped by 331f56730c62 ("iio: buffer-dma: sync write support with
+	 * upstream"), which left dds_buffer_setup_ops unused: without it no
+	 * DAC sync at buffer enable and no DATA_SEL write at buffer disable.
+	 */
+	indio_dev->setup_ops = &dds_buffer_setup_ops;
+
+	return 0;
 }
 EXPORT_SYMBOL_GPL(cf_axi_dds_configure_buffer);
