@@ -119,6 +119,7 @@ obj-$(CONFIG_ADRV9025) += adrv902x/
 obj-$(CONFIG_ADRV9001) += navassa/
 
 obj-$(CONFIG_AD9680) += ad9680.o
+obj-$(CONFIG_ARGUS_FPGA_STREAM) += argus-fpga-stream.o
 obj-$(CONFIG_ADMC) += admc_adc.o admc_speed.o admc_ctrl.o ad_adc.o
 
 obj-$(CONFIG_CF_AXI_TDD) += cf_axi_tdd.o

@@ -16,6 +16,19 @@ config AB8500_GPADC
 	  internal voltages, convert accessory and battery, AC (charger, mains)
 	  and USB voltages integral to the U8500 platform.
 
+config ARGUS_FPGA_STREAM
+	tristate "ARGUS FPGA packet stream through an AXI DMAC"
+	depends on OF
+	select IIO_BUFFER
+	select IIO_BUFFER_DMAENGINE
+	help
+	  An IIO device whose only data is a stream of 32-bit words that an
+	  FPGA block sends through one AXI DMAC. The packet format belongs to
+	  the FPGA block and to user space (RnP spectrum, ARGUS-93).
+
+	  To compile this driver as a module, choose M here: the module will be
+	  called argus-fpga-stream.
+
 config AD_SIGMA_DELTA
 	tristate
 	select IIO_BUFFER
